@@ -20,6 +20,8 @@ include('components/journey-items.php');
 
     <link rel="stylesheet" href="assets/css/testimonies.css">
     <link rel="stylesheet" href="assets/css/ourjourney.css">
+    <link rel="stylesheet" href="assets/css/stats.css">
+    <link rel="stylesheet" href="assets/css/gallery.css">
     
     <script>
       let activeProfile;
@@ -147,65 +149,86 @@ include('components/journey-items.php');
             </a>
         </div>
     </div>
-    <div class="mx-auto" style="max-width: 1536px">
-      <h1 class="title">
-        <span>TESTIMONIES</span>
-      </h1>
-      <br />
-      <div class="d-flex container profwrapper shadow-lg">
-        <div
-          class="d-flex align-items-center profselector"
-        >
-		<?php
-		$first = true;
-		if($testimonies != NULL && count($testimonies) > 0){
-			foreach ($testimonies as $testimony) {
-				echo '
-          		<img
-            		id="', $testimony["id"], 'Photo"
-            		onclick="testimoniesImgClick(\'', $testimony["id"], '\')"
-            		class="profselector__img rounded-circle profselector__img', $first ? " profselector__img--active " : "",'"
-            		src="assets/img/testimonies-thumbnail/', $testimony["id"], 'Photo.webp"
-				/>';
-				$first = false;
-			}
-		}
-		?>
-        </div>
-	  	<?php
-		if($testimonies != NULL && count($testimonies) > 0){
-			// Active profile = pertama, kecuali kalo ada request.
-			$first = true;
-			$valid_ids = array(); //Validation biar ga ada XSS.
-			foreach ($testimonies as $testimony) {
-				echo '<div id="', $testimony["id"], 'Profile" class="profdesc shadow-lg', $first ? '' : ' profdesc--hidden', '">';
-					echo '<div class="profdesc__summary">';
-						echo '
-						<img class="profdesc__sumimg" src="assets/img/testimonies-thumbnail/', $testimony["id"], 'Photo.webp"/> <br> <br>
-						<h2 class="profdesc__name fw-bold">', $testimony["name"] ,'</h2>
-						<h3 class="profdesc__job fs-6 fw-normal mb-4">', $testimony["job"], '</h3>
-						<div class="profdesc__years"> Kepengurusan HIMTI: ', $testimony["active_years"], '</div>';
-                        echo '<ul class="profdesc__experiences">';
-                        foreach ($testimony['experiences'] as $experience){
-                            echo '<li><b> ', $experience['experience'], '</b> (', $experience['year'] , ') </li>';
-                        }
-                        echo '</ul>';
-					echo '</div>';
-					echo '<div class="profdesc__story mt-4">', $testimony["testimony"],'</div>';
-				echo'</div>';
-				array_push($valid_ids, $testimony["id"]);
-				if($first){
-					echo '<script type="text/javascript">activeProfile="',$testimony["id"],'"</script>';
-				}
-				$first = false;
-			}
-			if(array_key_exists("profile", $_GET) && in_array($_GET["profile"], $valid_ids)){
-				echo '<script type="text/javascript">testimoniesImgClick("',$_GET["profile"],'")</script>';
-			}
-		}
-		?>
-      </div>
+    <div class="quick-stats container my-5">
+    <div class="title">
+        <span>HIMTI by Numbers</span>
     </div>
+    <div class="row text-center">
+        <div class="col-md-3">
+            <div class="stat-item">
+                <h2 class="counter" data-target="<?php echo count($testimonies); ?>" data-delay="0">0</h2>
+                <p>Alumni Stories</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-item">
+                <h2 class="counter" data-target="5" data-delay="200">0</h2>
+                <p>Campus Locations</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-item">
+                <h2 class="counter" data-target="1000" data-delay="400">0</h2>
+                <p>Active Members</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-item">
+                <h2 class="counter" data-target="<?php echo count($journeys); ?>" data-delay="600">0</h2>
+                <p>Years of Excellence</p>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="testimonies-container">
+    <div class="testimonies-section">
+        <div class="title">
+            <span>Testimonies</span>
+        </div>
+
+        <!-- Testimonies Carousel -->
+        <div class="testimonies-carousel-container">
+            <div class="testimonies-carousel" id="testimoniesCarousel">
+                <?php
+                foreach($testimonies as $index => $testimony) {
+                    if(empty($testimony['name'])) continue; // Skip empty testimonies
+                    
+                    echo '<div class="testimony-card" data-index="'.$index.'">
+                        <div class="testimony-avatar">
+                            <img src="assets/img/testimonies-thumbnail/'.$testimony["id"].'Photo.webp" alt="'.$testimony["name"].'">
+                        </div>
+                        <div class="testimony-content">
+                            <div class="testimony-text">
+                                <p>"'.substr($testimony["testimony"], 0, 180).'..."</p>
+                            </div>
+                            <div class="testimony-author">
+                                <h5>'.$testimony["name"].'</h5>
+                                <span>'.$testimony["job"].'</span>
+                                <div class="testimony-year">'.$testimony["active_years"].'</div>
+                            </div>
+                        </div>
+                    </div>';
+                }
+                ?>
+            </div>
+            
+            <!-- Navigation -->
+            <button class="carousel-nav prev" id="prevTestimony">‹</button>
+            <button class="carousel-nav next" id="nextTestimony">›</button>
+            
+            <!-- Dots indicator -->
+            <div class="carousel-dots">
+                <?php
+                $validTestimonies = array_filter($testimonies, function($t) { return !empty($t['name']); });
+                for($i = 0; $i < count($validTestimonies); $i++) {
+                    echo '<span class="dot'.($i === 0 ? ' active' : '').'" data-slide="'.$i.'"></span>';
+                }
+                ?>
+            </div>
+        </div>
+        
+    </div>
+</div>
     
     <div class="ourarticle">
         <div class="title">
@@ -261,14 +284,59 @@ include('components/journey-items.php');
             <span>Gallery</span>
         </div>
         <div class="container-lg pt-5">
-            <div class="row gy-4 row-cols-1 row-cols-sm-2 row-cols-md-3">
+            <!-- Gallery Filter -->
+            <div class="gallery-filter mb-4">
+                <button class="filter-btn active" data-filter="all">All</button>
+                <button class="filter-btn" data-filter="events">Events</button>
+                <button class="filter-btn" data-filter="activities">Activities</button>
+                <button class="filter-btn" data-filter="achievements">Achievements</button>
+            </div>
+            
+            <div class="row gy-4 row-cols-1 row-cols-sm-2 row-cols-md-3" id="gallery-container">
                 <?php
-                    for($i = 1; $i <= 6; $i++){
-                        echo '<div class="col">
-                            <img src="assets/img/gallery/'.$i.'.jpg" class="gallery-item" alt="gallery">
+                    $gallery_items = [
+                        ['img' => '1.jpg', 'category' => 'events', 'title' => 'HIMTI Annual Event'],
+                        ['img' => '2.jpg', 'category' => 'activities', 'title' => 'Workshop Session'],
+                        ['img' => '3.jpg', 'category' => 'achievements', 'title' => 'Award Ceremony'],
+                        ['img' => '4.jpg', 'category' => 'events', 'title' => 'Tech Competition'],
+                        ['img' => '5.jpg', 'category' => 'activities', 'title' => 'Study Group'],
+                        ['img' => '6.jpg', 'category' => 'achievements', 'title' => 'Recognition Day']
+                    ];
+                    
+                    foreach($gallery_items as $index => $item){
+                        echo '<div class="col gallery-item-wrapper" data-category="'.$item['category'].'">
+                            <div class="gallery-item-container">
+                                <img src="assets/img/gallery/'.$item['img'].'" class="gallery-item" alt="'.$item['title'].'" data-bs-toggle="modal" data-bs-target="#galleryModal" data-img="assets/img/gallery/'.$item['img'].'" data-title="'.$item['title'].'">
+                                <div class="gallery-overlay">
+                                    <div class="gallery-overlay-content">
+                                        <h5>'.$item['title'].'</h5>
+                                        <i class="bi bi-zoom-in"></i>
+                                    </div>
+                                </div>
+                            </div>
                         </div>';
                     }
                 ?>
+            </div>
+            
+            <!-- Load More Button -->
+            <div class="text-center mt-4">
+                <button class="btn btn-outline-primary btn-lg" id="loadMore">Load More Photos</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gallery Modal -->
+    <div class="modal fade" id="galleryModal" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="galleryModalTitle">Gallery Image</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <img id="galleryModalImage" src="" class="img-fluid" alt="">
+                </div>
             </div>
         </div>
     </div>
@@ -378,6 +446,8 @@ include('components/journey-items.php');
     VanillaTilt.init(document.querySelectorAll(".upcomingeventrow"));
     </script>
     <script src="assets/js/RSShandle.js"></script>
+    <script src="assets/js/counter-animation.js"></script>
+    <script src="assets/js/testimonies.js"></script>
 </body>
 
 </html>
